@@ -43,7 +43,6 @@ const free_fn free_ptr = (free_fn)clear_rec_1;
 const free_fn free_srv = (free_fn)clear_rec_1;
 const free_fn free_txt = (free_fn)clear_rec_1;
 const free_fn free_cname = (free_fn)clear_rec_1;
-const free_fn free_generic = (free_fn)clear_rec_1;
 
 const free_fn free_soa = (free_fn)clear_rec_2;
 const free_fn free_caa = (free_fn)clear_rec_2;

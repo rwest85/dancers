@@ -1,6 +1,8 @@
 #pragma once
 #include "000_internal.h"
 
+static void free_generic(dancers_rr *record) { free(record->generic.rdata); }
+
 static void record_clear(void *_record) {
   dancers_rr *record = _record;
   free(record->name);

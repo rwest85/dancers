@@ -69,12 +69,6 @@ static void records_free(dancers_rr *records, size_t count);
 
 recordtype *lookup_rt(dancers_rr_type type);
 
-static inline uint8_t read_uint8(const uint8_t *data, size_t *offset);
-static inline uint16_t read_uint16(const uint8_t *data, size_t *offset);
-static inline uint16_t peek_uint16(const uint8_t *data, size_t peek_offset);
-static inline uint32_t read_uint32(const uint8_t *data, size_t *offset);
-const free_fn free_generic;
-
 /** tracing and debug */
 #ifndef TRACE_ON
 #define TRACE_START(...)

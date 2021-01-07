@@ -74,9 +74,9 @@ static char *parse_name1(const uint8_t *data, size_t *offset, size_t length,
 
     if (is_compression_offset(l)) {
       compress_offset = get_compression_offset(read_uint16(data, offset));
-      if (*offset == compress_offset) {
+      if (compress_offset >= *offset) {
         DEBUG(
-            "Infinite recursion (offset 0x%04zx points to itself) while "
+            "Illegal recursion (offset 0x%04zx points forward) while "
             "decompressing domain name",
             compress_offset);
         return NULL;
