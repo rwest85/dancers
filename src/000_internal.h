@@ -23,7 +23,6 @@ typedef enum dancers_rr_type {
 } dancers_rr_type;
 
 #define MAX_DOMAINNAME_SZ 256
-#define MAX_RECURSION_DEPTH 8
 
 const uint16_t OP_QUERY = 0;
 

@@ -48,19 +48,13 @@ static char *read_str(const uint8_t *data, size_t *offset, size_t length) {
   return str;
 }
 
-static char *parse_name1(const uint8_t *data, size_t *offset, size_t length,
-                         int depth) {
+
+static char *parse_name(const uint8_t *data, size_t *offset, size_t length) {
   TRACE_START();
   char name[MAX_DOMAINNAME_SZ + 1] = {0};
 
   size_t l = 0;
   size_t compress_offset = 0;
-
-  if (depth > MAX_RECURSION_DEPTH) {
-    DEBUG("Exceeded maximum recursion depth %u while parsing domain name",
-          MAX_RECURSION_DEPTH);
-    return NULL;
-  }
 
   while (*offset < length) {
     /* peek at first byte */
@@ -82,9 +76,8 @@ static char *parse_name1(const uint8_t *data, size_t *offset, size_t length,
         return NULL;
       }
 
-      TRACE("Expanding compressed domain name depth=%u at 0x%04zx", depth,
-            *offset);
-      char *rest = parse_name1(data, &compress_offset, length, depth + 1);
+      TRACE("Expanding compressed domain name at 0x%04zx", *offset);
+      char *rest = parse_name(data, &compress_offset, length);
       if (rest) {
         if (append(name, rest, strlen(rest)) == 0) {
           TRACE("Expanded domain name '%s'", name);
@@ -131,11 +124,51 @@ static char *parse_name1(const uint8_t *data, size_t *offset, size_t length,
   return strdup((char *)name);
 }
 
-static char *parse_name(const uint8_t *data, size_t *offset, size_t length) {
-  return parse_name1(data, offset, length, 0);
-}
-
 static char *parse_name_nocompression(const uint8_t *data, size_t *offset,
                                       size_t length) {
-  return parse_name1(data, offset, length, MAX_RECURSION_DEPTH);
+  TRACE_START();
+  char name[MAX_DOMAINNAME_SZ + 1] = {0};
+
+  size_t l = 0;
+
+  while (*offset < length) {
+    /* peek at first byte */
+    l = data[*offset];
+    TRACE("Parsing name segment 0x%02zx", l);
+
+    if (l == 0) {
+      *offset = *offset + 1;
+      break;
+    }
+
+    if (is_compression_offset(l)) {
+        DEBUG(
+            "Compression not allowed at (offset 0x%04zx) while "
+            "decompressing name",
+	    *offset);
+        return NULL;
+    } else if (l < 63) {
+      if (append(name, (const char *)&data[*offset + 1], l) == 0 &&
+          append(name, ".", 1) == 0) {
+        TRACE("Added segment to name '%s' at 0x%04zx", name, *offset);
+        *offset += l + 1;
+      } else
+        return NULL;
+    } else {
+      DEBUG("Encountered illegal length value 0x%02zx while parsing name", l);
+      return NULL;
+    }
+  }
+
+  if (*offset > length) {
+    DEBUG("exceeded record length 0x%0zu while parsing name '%s'", length,
+          name);
+    return NULL;
+  }
+
+  /* remove final dot */
+  l = strlen(name);
+  if ((l > 0) && name[l - 1] == '.') name[l - 1] = '\0';
+
+  return strdup((char *)name);
 }
