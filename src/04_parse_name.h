@@ -48,7 +48,6 @@ static char *read_str(const uint8_t *data, size_t *offset, size_t length) {
   return str;
 }
 
-
 static char *parse_name(const uint8_t *data, size_t *offset, size_t length) {
   TRACE_START();
   char name[MAX_DOMAINNAME_SZ + 1] = {0};
@@ -142,11 +141,11 @@ static char *parse_name_nocompression(const uint8_t *data, size_t *offset,
     }
 
     if (is_compression_offset(l)) {
-        DEBUG(
-            "Compression not allowed at (offset 0x%04zx) while "
-            "decompressing name",
-	    *offset);
-        return NULL;
+      DEBUG(
+          "Compression not allowed at (offset 0x%04zx) while "
+          "decompressing name",
+          *offset);
+      return NULL;
     } else if (l < 63) {
       if (append(name, (const char *)&data[*offset + 1], l) == 0 &&
           append(name, ".", 1) == 0) {
