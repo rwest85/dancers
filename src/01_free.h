@@ -19,7 +19,6 @@ static void records_free(dancers_rr *records, size_t count) {
   if (count > 0 && records != NULL) {
     for (size_t i = 0; i < count; i++) record_clear(&records[i]);
   }
-  free(records);
 }
 
 void dancers_packet_free(dancers_packet *packet) {

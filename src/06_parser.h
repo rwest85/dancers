@@ -8,23 +8,19 @@ static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
   if (*offset + minimum_size >= length) return DE_PACKET_PARSE;
 
   if (count > 0) {
-    /* allocate space for questions */
-    dancers_q *questions = calloc(sizeof(dancers_q), count);
-
     for (size_t i = 0; i < count; i++) {
       char *name = parse_name(data, offset, length);
       if (name == NULL || (*offset + QUESTION_POSTNAME_SZ) >= length) {
-        questions_free(questions, count);
+        questions_free(packet->questions, count);
         return DE_PACKET_PARSE;
       } else {
-        dancers_q *question = &questions[i];
+        dancers_q *question = &(packet->questions[i].q);
         question->name = name;
 
         question->type = read_uint16(data, offset);
         question->cls = read_uint16(data, offset);
       }
     }
-    packet->questions = questions;
   }
 
   return DE_SUCCESS;
@@ -108,15 +104,10 @@ static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
 }
 
 static int parse_rrset(const uint8_t *data, size_t *offset, size_t length,
-                       size_t count, dancers_rr **_records) {
+                       size_t count, dancers_rr *records) {
   int rc = DE_SUCCESS;
 
   if (count > 0) {
-    /* allocate space */
-    dancers_rr *records = calloc(sizeof(dancers_rr), count);
-    if (records == NULL) {
-      rc = DE_MALLOC_FAILED;
-    } else {
       for (size_t i = 0; i < count; i++) {
         dancers_rr *base = &(records[i]);
 
@@ -126,10 +117,8 @@ static int parse_rrset(const uint8_t *data, size_t *offset, size_t length,
           records_free(records, count);
           records = NULL;
           break;
-        }
       }
     }
-    *_records = records;
   }
   return rc;
 }
@@ -160,45 +149,54 @@ int parse_header(const uint8_t *data, size_t *offset, dancers_packet *packet) {
 }
 
 dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
-                                   dancers_packet **packet) {
+                                   dancers_packet **_packet) {
   /* minimum packet size */
   if (length < MIN_HEADER_SZ) return DE_PACKET_PARSE;
 
-  *packet = calloc(65536, 1);
+  dancers_packet *packet = calloc(65536, 1);
 
   size_t _offset = 0;
   size_t *offset = &_offset;
   TRACE_START();
 
   /* parse header */
-  int rc = parse_header(data, offset, *packet);
+  int rc = parse_header(data, offset, packet);
+
+  packet->questions = (dancers_rr *)&(packet->rest[8]);
+  packet->answers = &(packet->questions[packet->qd_count + 1]);
+  packet->nameservers = &(packet->answers[packet->an_count + 1]);
+  packet->additional = &(packet->nameservers[packet->ns_count + 1]);
+
+  void *rest = &(packet->additional[packet->ar_count + 1]);
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing questions (%zu)", (*packet)->qd_count);
-    rc = parse_questions(data, offset, length, *packet);
+    TRACE("parsing questions (%zu)", packet->qd_count);
+    rc = parse_questions(data, offset, length, packet);
   }
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing answers (%zu)", (*packet)->an_count);
-    rc = parse_rrset(data, offset, length, (*packet)->an_count,
-                     &((*packet)->answers));
+    TRACE("parsing answers (%zu)", packet->an_count);
+    rc = parse_rrset(data, offset, length, packet->an_count,
+                     packet->answers);
   }
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing nameserver records (%zu)", (*packet)->ns_count);
-    rc = parse_rrset(data, offset, length, (*packet)->ns_count,
-                     &((*packet)->nameservers));
+    TRACE("parsing nameserver records (%zu)", packet->ns_count);
+    rc = parse_rrset(data, offset, length, packet->ns_count,
+                     packet->nameservers);
   }
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing additional records (%zu)", (*packet)->ar_count);
-    rc = parse_rrset(data, offset, length, (*packet)->ar_count,
-                     &((*packet)->additional));
+    TRACE("parsing additional records (%zu)", packet->ar_count);
+    rc = parse_rrset(data, offset, length, packet->ar_count,
+                     packet->additional);
   }
 
   if (rc != DE_SUCCESS) {
-    dancers_packet_free(*packet);
-    *packet = NULL;
+    free(packet);
+    *_packet = NULL;
+  } else {
+    *_packet = packet;
   }
 
   return rc;

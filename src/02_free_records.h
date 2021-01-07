@@ -9,12 +9,11 @@ typedef struct dancers_rr_free {
   void *p4;
 } dancers_rr_free;
 
-static void questions_free(dancers_q *questions, size_t count) {
+static void questions_free(dancers_rr *questions, size_t count) {
   if (count > 0 && questions != NULL) {
     for (size_t i = 0; i < count; i++)
       if (questions[i].name) free(questions[i].name);
   }
-  free(questions);
 }
 
 static void clear_noop(void *_unused) {}

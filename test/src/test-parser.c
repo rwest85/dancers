@@ -41,7 +41,7 @@ START_TEST(test_parse_packet2) {
   ck_assert_uint_eq(packet->rd, 1);
 
   ck_assert_uint_eq(packet->qd_count, 1);
-  dancers_q *question = &(packet->questions[0]);
+  dancers_rr *question = &(packet->questions[0]);
   ck_assert_str_eq(question->name, "delegation-test.ventx.de");
   ck_assert_uint_eq(question->cls, CLS_IN);
   ck_assert_uint_eq(question->type, t_ns);
@@ -182,7 +182,7 @@ START_TEST(test_parse_packet) {
   ck_assert_uint_eq(packet->aa, 1);
 
   ck_assert_uint_eq(packet->qd_count, 1);
-  dancers_q *question = &(packet->questions[0]);
+  dancers_rr *question = &(packet->questions[0]);
   ck_assert_str_eq(question->name, "zone000004.example");
   ck_assert_uint_eq(question->cls, CLS_IN);
   ck_assert_uint_eq(question->type, t_soa);

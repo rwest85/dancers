@@ -62,7 +62,7 @@ typedef struct recordtype {
   print_fn print_fn;
 } recordtype;
 
-static void questions_free(dancers_q *questions, size_t count);
+static void questions_free(dancers_rr *questions, size_t count);
 static void record_clear(void *_record);
 static void records_free(dancers_rr *records, size_t count);
 

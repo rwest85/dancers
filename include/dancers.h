@@ -32,7 +32,7 @@ typedef struct dancers_packet {
   unsigned int cd : 1;
   unsigned int rcode : 4;
 
-  dancers_q *questions;
+  dancers_rr *questions;
   dancers_rr *answers;
   dancers_rr *nameservers;
   dancers_rr *additional;
@@ -174,7 +174,7 @@ typedef struct dancers_rr_caa {
 typedef union dancers_rr {
   DANCERS_RR_BASE_ELEMENTS;
   dancers_rr_base base;
-  dancers_q question;
+  dancers_q q;
   dancers_rr_a a;
   dancers_rr_ns ns;
   dancers_rr_cname cname;
