@@ -30,6 +30,9 @@ test: ../out/test-dancers ../out/test-asan ../out/test-optimized
 fuzz: ../out/packet-fuzzer
 	$(FUZZER) -i ../fixtures/packets -o ../out -- ../out/packet-fuzzer
 
+format: always
+	clang-format -style=Google -i ../**/*.[ch]
+
 ../out/packet-fuzzer: $(FUZZ_SOURCES) $(DEPS)
 	rm -f $@ && AFL_HARDEN=1 $(FUZZCLANG) -g $(FUZZ_SOURCES) -o $@
 
