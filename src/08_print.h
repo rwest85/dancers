@@ -1,7 +1,6 @@
 #pragma once
 
-#include "internal.h"
-#include "print_records.c"
+#include "000_internal.h"
 
 static int dancers_print_rr(FILE *f, const void *_record) {
   const dancers_rr *record = _record;

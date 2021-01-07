@@ -1,8 +1,6 @@
 #pragma once
 #include <arpa/inet.h>
 
-#include "internal.h"
-
 static int print_name(FILE *f, const char *name) {
   if (name == NULL || name[0] == '\0')
     return fprintf(f, ". ");

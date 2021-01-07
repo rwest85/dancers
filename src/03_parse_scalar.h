@@ -1,5 +1,5 @@
 #pragma once
-#include "internal.h"
+#include "000_internal.h"
 
 const size_t SOCKADDR_IN_SZ = sizeof(struct sockaddr_in);
 const size_t IN_ADDR_SZ = sizeof(struct in_addr);

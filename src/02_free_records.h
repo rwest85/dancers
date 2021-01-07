@@ -1,5 +1,5 @@
 #pragma once
-#include "internal.h"
+#include "000_internal.h"
 
 typedef struct dancers_rr_free {
   DANCERS_RR_BASE_ELEMENTS;

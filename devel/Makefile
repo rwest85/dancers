@@ -64,10 +64,6 @@ fuzz-refresh: ../out/packet-fuzzer
 	$(FUZZDIR)/afl-cmin -i ../../dns-fuzzing/packet -o out/npackets -m 1000000 -t 400000 -- ../out/packet-fuzzer
 	cp -vr out/npackets/* ../fixtures/packets
 
-# debug a failing check:
-# CK_FORK=no lldb out/test-dancers
-# run
-
 cover: ../out/test-dancers
 	LLVM_PROFILE_FILE="../out/dancers.profraw" ../out/test-dancers
 	xcrun llvm-profdata merge -sparse ../out/dancers.profraw -o ../out/dancers.profdata

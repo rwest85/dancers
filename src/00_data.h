@@ -1,10 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "internal.h"
+#include "000_internal.h"
 
 const uint8_t QR_QUERY = 0;
 const uint8_t QR_RESPONSE = 1;

@@ -1,7 +1,5 @@
 #pragma once
-#include "internal.h"
-#include "parse_name.c"
-#include "parse_scalar.c"
+#include "000_internal.h"
 
 const size_t MIN_HEADER_SZ = 12;
 const size_t MIN_QUESTION_SZ = 5;

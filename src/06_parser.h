@@ -1,8 +1,4 @@
 #pragma once
-#include "internal.h"
-#include "parse_records.c"
-#include "parse_scalar.c"
-#include "records.c"
 
 static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
                            dancers_packet *packet) {

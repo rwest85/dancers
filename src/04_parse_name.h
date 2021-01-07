@@ -1,6 +1,5 @@
 #pragma once
-#include "internal.h"
-#include "parse_scalar.c"
+#include "000_internal.h"
 
 const uint8_t COMPRESSION_FLAGS = 0xC0;
 const uint16_t COMPRESSION_MASK = 0x3FFF;

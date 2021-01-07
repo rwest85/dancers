@@ -1,14 +1,7 @@
 #pragma once
-#include "free_records.c"
-#include "internal.h"
-#include "parse_records.c"
-#include "print_records.c"
 
 /* NOTE: sorted in record-type order */
 static const recordtype parse_types[] = {
-    //      type		min_rdlen		max_rdlen	parse_fn
-    //      free_fn
-    //      print_fn
     {0, 0, 0, NULL, NULL, NULL},
     {t_a, A_RDLEN, A_RDLEN, parse_a, free_a, print_a},
     {t_ns, MIN_NS_RDLEN, MAX_RDLEN, parse_ns, free_ns, print_ns},
