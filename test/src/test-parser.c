@@ -15,6 +15,12 @@ dancers_packet *cleanup_packet(dancers_packet *packet) {
   return NULL;
 }
 
+static int test_parse_rr(const uint8_t *data, size_t *offset, size_t length,
+			 dancers_rr *record) {
+  /* TODO: set up parse context for testing */
+  return parse_rr(data, offset, length, record);
+}
+
 void cleanup_record(void *record) {
   if (write_parser_output) {
     dancers_print_rr(stderr, record);
@@ -127,7 +133,7 @@ START_TEST(test_parse_uint32_alignment) {
     size_t length = len + template_length;
 
     dancers_rr record = {0};
-    int rc = parse_rr(data, &offset, length, &record);
+    int rc = test_parse_rr(data, &offset, length, &record);
 
     ck_assert_uint_eq(rc, DE_SUCCESS);
     ck_assert_uint_eq(strlen(record.name), i);
@@ -281,7 +287,7 @@ START_TEST(test_parse_edns_option) {
   dancers_rr record;
   size_t offset = 0;
 
-  int rc = parse_rr(option, &offset, option_len, &record);
+  int rc = test_parse_rr(option, &offset, option_len, &record);
   ck_assert_int_eq(rc, DE_SUCCESS);
 }
 END_TEST
@@ -366,7 +372,7 @@ START_TEST(test_parse_naptr) {
   dancers_rr record = {0};
   dancers_rr_naptr *naptr = &(record.naptr);
   size_t offset = 0;
-  int rc = parse_rr(fixture_naptr, &offset, fixture_naptr_len, &record);
+  int rc = test_parse_rr(fixture_naptr, &offset, fixture_naptr_len, &record);
 
   ck_assert_uint_eq(rc, DE_SUCCESS);
   ck_assert_str_eq(naptr->name, "example.com");
