@@ -68,6 +68,19 @@ static void records_free(dancers_rr *records, size_t count);
 
 recordtype *lookup_rt(dancers_rr_type type);
 
+typedef struct dancers_parse_header {
+  struct dancers_packet packet;
+  dancers_rr *rest;
+  void *end;
+} dancers_parse_header;
+
+typedef struct dancers_parse {
+  union {
+    dancers_parse_header header;
+    dancers_rr records[16];
+  };
+} dancers_parse;
+
 /** tracing and debug */
 #ifndef TRACE_ON
 #define TRACE_START(...)

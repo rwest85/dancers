@@ -1,7 +1,7 @@
 #pragma once
 
 static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
-                           dancers_packet *packet) {
+                           dancers_packet *packet, dancers_parse *parse) {
   size_t count = packet->qd_count;
   size_t minimum_size = count * MIN_QUESTION_SZ;
 
@@ -104,7 +104,8 @@ static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
 }
 
 static int parse_rrset(const uint8_t *data, size_t *offset, size_t length,
-                       size_t count, dancers_rr *records) {
+                       size_t count, dancers_rr *records,
+                       dancers_parse *parse) {
   int rc = DE_SUCCESS;
 
   if (count > 0) {
@@ -153,16 +154,12 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
   /* minimum packet size */
   if (length < MIN_HEADER_SZ) return DE_PACKET_PARSE;
 
-  union {
-    dancers_rr *records;
-    dancers_packet *packet;
-  } u;
-  u.packet = calloc(65536, 1);
-  dancers_packet *packet = u.packet;
-  packet->end = (void *)packet + 65536;
-
-  size_t o = (2 * sizeof(dancers_packet) - 1) / sizeof(dancers_rr);
-  packet->rest = &u.records[o];
+  dancers_parse *parse = calloc(65536, 1);
+  dancers_packet *packet = &(parse->header.packet);
+  parse->header.end = (void *)parse + 65536;
+  size_t o = (sizeof(dancers_parse_header) + sizeof(dancers_rr) - 1) /
+             sizeof(dancers_rr);
+  parse->header.rest = &(parse->records[o]);
 
   size_t _offset = 0;
   size_t *offset = &_offset;
@@ -179,36 +176,48 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
     DEBUG(
         "Packet with %u questions and %u/%u/%u rr has min length %u > this "
         "packet length %u",
-        packet->qd_count, packet->an_count, +packet->ns_count,
-        +packet->ar_count, min_size, length);
+        packet->qd_count, packet->an_count, +packet->ns_count, packet->ar_count,
+        min_size, length);
+    free(packet);
+    return DE_PACKET_PARSE;
   }
 
-  packet->questions = packet->rest;
+  packet->questions = parse->header.rest;
   packet->answers = &(packet->questions[packet->qd_count + 1]);
   packet->nameservers = &(packet->answers[packet->an_count + 1]);
   packet->additional = &(packet->nameservers[packet->ns_count + 1]);
-  packet->rest = &(packet->additional[packet->ar_count + 1]);
+  parse->header.rest = &(packet->additional[packet->ar_count + 1]);
+
+  if ((void *)parse->header.rest > parse->header.end) {
+    DEBUG(
+        "Packet required %u bytes to track all RRs, but only %u were allocated",
+        (void *)packet->rest - packet, (void *)packet->end - packet);
+    ;
+    free(packet);
+    return DE_PACKET_PARSE;
+  }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing questions (%zu)", packet->qd_count);
-    rc = parse_questions(data, offset, length, packet);
+    rc = parse_questions(data, offset, length, packet, parse);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing answers (%zu)", packet->an_count);
-    rc = parse_rrset(data, offset, length, packet->an_count, packet->answers);
+    rc = parse_rrset(data, offset, length, packet->an_count, packet->answers,
+                     parse);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing nameserver records (%zu)", packet->ns_count);
     rc = parse_rrset(data, offset, length, packet->ns_count,
-                     packet->nameservers);
+                     packet->nameservers, parse);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing additional records (%zu)", packet->ar_count);
-    rc =
-        parse_rrset(data, offset, length, packet->ar_count, packet->additional);
+    rc = parse_rrset(data, offset, length, packet->ar_count, packet->additional,
+                     parse);
   }
 
   if (rc != DE_SUCCESS) {
