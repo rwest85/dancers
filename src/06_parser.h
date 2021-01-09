@@ -1,7 +1,7 @@
 #pragma once
 
 static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
-                           dancers_packet *packet, dancers_parse *parse) {
+                           dancers_packet *packet) {
   size_t count = packet->qd_count;
   size_t minimum_size = count * MIN_QUESTION_SZ;
 
@@ -104,8 +104,7 @@ static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
 }
 
 static int parse_rrset(const uint8_t *data, size_t *offset, size_t length,
-                       size_t count, dancers_rr *records,
-                       dancers_parse *parse) {
+                       size_t count, dancers_rr *records) {
   int rc = DE_SUCCESS;
 
   if (count > 0) {
@@ -199,25 +198,24 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing questions (%zu)", packet->qd_count);
-    rc = parse_questions(data, offset, length, packet, parse);
+    rc = parse_questions(data, offset, length, packet);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing answers (%zu)", packet->an_count);
-    rc = parse_rrset(data, offset, length, packet->an_count, packet->answers,
-                     parse);
+    rc = parse_rrset(data, offset, length, packet->an_count, packet->answers);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing nameserver records (%zu)", packet->ns_count);
     rc = parse_rrset(data, offset, length, packet->ns_count,
-                     packet->nameservers, parse);
+                     packet->nameservers);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing additional records (%zu)", packet->ar_count);
-    rc = parse_rrset(data, offset, length, packet->ar_count, packet->additional,
-                     parse);
+    rc =
+        parse_rrset(data, offset, length, packet->ar_count, packet->additional);
   }
 
   if (rc != DE_SUCCESS) {

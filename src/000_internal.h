@@ -70,6 +70,9 @@ recordtype *lookup_rt(dancers_rr_type type);
 
 typedef struct dancers_parse_header {
   struct dancers_packet packet;
+  const uint8_t *data;
+  size_t offset;
+  size_t length;
   dancers_rr *rest;
   void *end;
 } dancers_parse_header;
