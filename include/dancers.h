@@ -42,7 +42,8 @@ typedef struct dancers_packet {
   size_t ns_count;
   size_t ar_count;
 
-  uint8_t rest[8];
+  dancers_rr *rest;
+  void *end;
 } dancers_packet;
 
 typedef enum dancers_error {
