@@ -86,8 +86,8 @@ static int parse_naptr(dancers_parse *parse, size_t rdlen, void *record) {
 
   TRACE("parsing NAPTR record with rdlen %zu", rdlen);
 
-  naptr->order = read_uint16(data, offset);
-  naptr->preference = read_uint16(data, offset);
+  naptr->order = read_uint16(parse);
+  naptr->preference = read_uint16(parse);
 
   naptr->flags = read_str(parse);
   if (naptr->flags != NULL) naptr->service = read_str(parse);
@@ -174,10 +174,10 @@ static int parse_opt(dancers_parse *parse, size_t rdlen, void *record) {
     }
 
     /* read uint16 option */
-    uint16_t option = read_uint16(data, offset);
+    uint16_t option = read_uint16(parse);
 
     /* read uint16 length */
-    uint16_t l = read_uint16(data, offset);
+    uint16_t l = read_uint16(parse);
 
     /* alloc, read length bytes */
     if (*offset + l > end_offset) return DE_PACKET_PARSE;
@@ -212,15 +212,15 @@ static int parse_soa(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_soa *soa = record;
   int rc = DE_PACKET_PARSE;
 
-  soa->mname = parse_name_internal(parse);
-  if (soa->mname != NULL) soa->rname = parse_name_internal(parse);
+  soa->mname = parse_name(parse);
+  if (soa->mname != NULL) soa->rname = parse_name(parse);
 
   if (soa->rname != NULL && *offset + 20 <= length) {
-    soa->serial = read_uint32(data, offset);
-    soa->refresh = read_uint32(data, offset);
-    soa->retry = read_uint32(data, offset);
-    soa->expire = read_uint32(data, offset);
-    soa->minimum = read_uint32(data, offset);
+    soa->serial = read_uint32(parse);
+    soa->refresh = read_uint32(parse);
+    soa->retry = read_uint32(parse);
+    soa->expire = read_uint32(parse);
+    soa->minimum = read_uint32(parse);
     rc = DE_SUCCESS;
   }
 
@@ -234,12 +234,12 @@ static int parse_srv(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_srv *srv = record;
   int rc = DE_PACKET_PARSE;
 
-  srv->priority = read_uint16(data, offset);
-  srv->weight = read_uint16(data, offset);
-  srv->port = read_uint16(data, offset);
+  srv->priority = read_uint16(parse);
+  srv->weight = read_uint16(parse);
+  srv->port = read_uint16(parse);
 
   /* rfc is ambiguous about compression, so support it */
-  srv->target = parse_name_internal(parse);
+  srv->target = parse_name(parse);
   if (srv->target != NULL) rc = DE_SUCCESS;
 
   return rc;
@@ -252,9 +252,9 @@ static int parse_mx(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_mx *mx = record;
   int rc = DE_PACKET_PARSE;
 
-  mx->preference = read_uint16(data, offset);
+  mx->preference = read_uint16(parse);
 
-  mx->mx = parse_name(data, offset, length);
+  mx->mx = parse_name(parse);
   if (mx->mx != NULL) rc = DE_SUCCESS;
 
   return rc;
@@ -268,7 +268,7 @@ static int parse_ptr(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_ptr *ptr = record;
   int rc = DE_PACKET_PARSE;
 
-  ptr->ptr = parse_name(data, offset, length);
+  ptr->ptr = parse_name(parse);
   if (ptr->ptr != NULL) rc = DE_SUCCESS;
 
   return rc;
@@ -281,7 +281,7 @@ static int parse_cname(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_cname *cname = record;
   int rc = DE_PACKET_PARSE;
 
-  cname->cname = parse_name(data, offset, length);
+  cname->cname = parse_name(parse);
   if (cname->cname != NULL) rc = DE_SUCCESS;
 
   return rc;
@@ -294,7 +294,7 @@ static int parse_ns(dancers_parse *parse, size_t rdlen, void *record) {
   dancers_rr_ns *ns = record;
   int rc = DE_PACKET_PARSE;
 
-  ns->nameserver = parse_name(data, offset, length);
+  ns->nameserver = parse_name(parse);
   if (ns->nameserver != NULL) rc = DE_SUCCESS;
 
   return rc;

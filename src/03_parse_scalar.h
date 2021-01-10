@@ -11,15 +11,19 @@ static inline uint8_t read_uint8(struct dancers_parse *parse) {
   /* ASSUMES: bytes between *offset and *offset+1 are in-bounds */
 
   uint8_t rtn = parse->header.data[parse->header.offset];
-  parse->2header.offset += sizeof(uint8_t);
+  parse->header.offset += sizeof(uint8_t);
 
   return rtn;
 }
 
-static inline uint16_t read_uint16(const uint8_t *data, size_t *offset) {
+static inline uint16_t read_uint16(struct dancers_parse *parse) {
+
   /* ASSUMES: bytes between *offset and *offset+2 are in-bounds */
-  uint16_t rtn = (data[*offset] << 8) + data[*offset + 1];
-  *offset = *offset + sizeof(uint16_t);
+  uint16_t rtn = (parse->header.data[parse->header.offset] << 8) +
+    parse->header.data[parse->header.offset + 1];
+
+  parse->header.offset += sizeof(uint16_t);
+
   return rtn;
 }
 
@@ -27,10 +31,10 @@ static inline uint16_t peek_uint16(const uint8_t *data, size_t peek_offset) {
   return (data[peek_offset] << 8) + data[peek_offset + 1];
 }
 
-static inline uint32_t read_uint32(const uint8_t *data, size_t *offset) {
+static inline uint32_t read_uint32(struct dancers_parse *parse) {
   /* ASSUMES: bytes between *offset and *offset+4 are in-bounds */
-  uint16_t hi = read_uint16(data, offset);
-  uint16_t lo = read_uint16(data, offset);
+  uint16_t hi = read_uint16(parse);
+  uint16_t lo = read_uint16(parse);
 
   return (hi << 16) | lo;
 }

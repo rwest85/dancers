@@ -38,7 +38,7 @@ static char *test_parse_name(const uint8_t *data, size_t *offset, size_t length)
   parse->header.offset = *offset;
   parse->header.end = (void *)parse + 65536;
 
-  char *name = parse_name_internal(parse);
+  char *name = parse_name(parse);
 
   *offset = parse->header.offset;
 
