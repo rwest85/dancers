@@ -148,28 +148,14 @@ int parse_header(const uint8_t *data, size_t *offset, dancers_packet *packet) {
   return DE_SUCCESS;
 }
 
-static dancers_error dancers_packet_parse_internal(dancers_parse * parse)
-{
-  return 0;
-}
-
-dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
-                                   dancers_packet **_packet) {
-  /* minimum packet size */
-  if (length < MIN_HEADER_SZ) return DE_PACKET_PARSE;
-
-  dancers_parse *parse = calloc(65536, 1);
+static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   dancers_packet *packet = &(parse->header.packet);
-  parse->header.end = (void *)parse + 65536;
-  size_t o = (sizeof(dancers_parse_header) + sizeof(dancers_rr) - 1) /
-             sizeof(dancers_rr);
-  parse->header.rest = &(parse->records[o]);
-
-  size_t _offset = 0;
-  size_t *offset = &_offset;
-  TRACE_START();
+  size_t *offset = &(parse->header.offset);
+  const uint8_t *data = parse->header.data;
+  size_t length = parse->header.length;
 
   /* parse header */
+  TRACE_START();
   int rc = parse_header(data, offset, packet);
 
   const size_t min_size =
@@ -178,8 +164,9 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
 
   if (min_size > length) {
     DEBUG(
-        "Packet with %u questions and %u/%u/%u rr has min length %u > this "
-        "packet length %u",
+        "Packet with %zu questions and %zu/%zu/%zu rr has min length %zu > "
+        "this "
+        "packet length %zu",
         packet->qd_count, packet->an_count, +packet->ns_count, packet->ar_count,
         min_size, length);
     free(packet);
@@ -192,11 +179,14 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
   packet->additional = &(packet->nameservers[packet->ns_count + 1]);
   parse->header.rest = &(packet->additional[packet->ar_count + 1]);
 
-  if ((void *)parse->header.rest > parse->header.end) {
+  size_t allocated = parse->header.end - (void *)parse;
+  size_t required = (void *)parse->header.rest - (void *)parse;
+  if (required > allocated) {
     DEBUG(
-        "Packet required %u bytes to track all RRs, but only %u were allocated",
-        (void *)packet->rest - packet, (void *)packet->end - packet);
-    ;
+        "Packet required %zu bytes to track all RRs, but only %zu were "
+        "allocated",
+        required, allocated);
+
     free(packet);
     return DE_PACKET_PARSE;
   }
@@ -223,12 +213,27 @@ dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
         parse_rrset(data, offset, length, packet->ar_count, packet->additional);
   }
 
-  if (rc != DE_SUCCESS) {
-    free(packet);
-    *_packet = NULL;
-  } else {
-    *_packet = packet;
-  }
+  return rc;
+}
+
+dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
+                                   dancers_packet **_packet) {
+  /* minimum packet size */
+  if (length < MIN_HEADER_SZ) return DE_PACKET_PARSE;
+
+  dancers_parse *parse = calloc(65536, 1);
+  parse->header.data = data;
+  parse->header.length = length;
+
+  dancers_packet *packet = &(parse->header.packet);
+  parse->header.end = (void *)parse + 65536;
+  size_t o = (sizeof(dancers_parse_header) + sizeof(dancers_rr) - 1) /
+             sizeof(dancers_rr);
+  parse->header.rest = &(parse->records[o]);
+
+  int rc = dancers_packet_parse_internal(parse);
+
+  if (rc == DE_SUCCESS) *_packet = packet;
 
   return rc;
 }
