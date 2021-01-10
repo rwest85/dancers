@@ -184,15 +184,19 @@ static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
   return rc;
 }
 
-static int parse_rrset(const uint8_t *data, size_t *offset, size_t length,
+static int parse_rrset(dancers_parse *parse,
                        size_t count, dancers_rr *records) {
   int rc = DE_SUCCESS;
+
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  size_t length = parse->header.length;
 
   if (count > 0) {
     for (size_t i = 0; i < count; i++) {
       dancers_rr *base = &(records[i]);
 
-      rc = parse_rr(data, offset, length, base);
+      rc = parse_rr_internal(parse, base);
 
       if (rc != DE_SUCCESS) {
         records_free(records, count);
@@ -279,19 +283,19 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing answers (%zu)", packet->an_count);
-    rc = parse_rrset(data, offset, length, packet->an_count, packet->answers);
+    rc = parse_rrset(parse, packet->an_count, packet->answers);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing nameserver records (%zu)", packet->ns_count);
-    rc = parse_rrset(data, offset, length, packet->ns_count,
+    rc = parse_rrset(parse, packet->ns_count,
                      packet->nameservers);
   }
 
   if (rc == DE_SUCCESS) {
     TRACE("parsing additional records (%zu)", packet->ar_count);
     rc =
-        parse_rrset(data, offset, length, packet->ar_count, packet->additional);
+        parse_rrset(parse, packet->ar_count, packet->additional);
   }
 
   return rc;
