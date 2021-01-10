@@ -31,7 +31,7 @@ static int parse_questions(dancers_parse *parse) {
   return DE_SUCCESS;
 }
 
-static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
+static int parse_rr(dancers_parse *parse, dancers_rr *record) {
   int rc = DE_SUCCESS;
 
   const uint8_t *data = parse->header.data;
@@ -194,7 +194,7 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
     for (size_t i = 0; i < rr_count; i++) {
       dancers_rr *base = &(packet->answers[i]);
 
-      rc = parse_rr_internal(parse, base);
+      rc = parse_rr(parse, base);
 
       if (rc != DE_SUCCESS) {
         break;

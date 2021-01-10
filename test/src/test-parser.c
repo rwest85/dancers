@@ -24,7 +24,7 @@ static int test_parse_rr(const uint8_t *data, size_t *offset, size_t length,
   parse->header.offset = *offset;
   parse->header.end = (void *)parse + 65536;
 
-  int rc = parse_rr_internal(parse, record);
+  int rc = parse_rr(parse, record);
 
   return rc;
 }
