@@ -98,7 +98,7 @@ static int parse_naptr(dancers_parse *parse, size_t rdlen, void *record) {
     naptr->regexp = read_str(parse);
 
   if (naptr->regexp != NULL)
-    naptr->replacement = parse_name_nocompression(data, offset, end_offset);
+    naptr->replacement = parse_name_nocompression(parse);
 
   if (naptr->replacement != NULL) rc = DE_SUCCESS;
 

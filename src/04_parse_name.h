@@ -209,8 +209,11 @@ static char *parse_name(const uint8_t *data, size_t *offset, size_t length) {
   return strdup((char *)name);
 }
 
-static char *parse_name_nocompression(const uint8_t *data, size_t *offset,
-                                      size_t length) {
+static char *parse_name_nocompression(struct dancers_parse *parse) {
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  size_t length = parse->header.length;
+
   TRACE_START();
   char name[MAX_DOMAINNAME_SZ + 1] = {0};
 
