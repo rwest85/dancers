@@ -372,26 +372,6 @@ START_TEST(test_parse_opt_probit_r) {
 }
 END_TEST
 
-START_TEST(test_parse_header) {
-  dancers_packet packet = {0};
-  size_t offset = 0;
-  int rc = parse_header(fixture_header, &offset, &packet);
-
-  ck_assert_uint_eq(rc, DE_SUCCESS);
-  ck_assert_uint_eq(packet.qid, 34009);
-  ck_assert_uint_eq(packet.qr, 1);
-  ck_assert_uint_eq(packet.opcode, OP_QUERY);
-  ck_assert_uint_eq(packet.rcode, RC_NOERROR);
-  ck_assert_uint_eq(packet.aa, 1);
-  ck_assert_uint_eq(packet.rd, 1);
-
-  ck_assert_uint_eq(packet.qd_count, 1);
-  ck_assert_uint_eq(packet.an_count, 5);
-  ck_assert_uint_eq(packet.ns_count, 0);
-  ck_assert_uint_eq(packet.ar_count, 1);
-}
-END_TEST
-
 START_TEST(test_parse_naptr) {
   dancers_rr record = {0};
   dancers_rr_naptr *naptr = &(record.naptr);
@@ -500,7 +480,6 @@ Suite *parser_suite(void) {
     tcase_set_tags(tc, "parser packet");
 
     tcase_add_test(tc, test_parse_packet_crash1);
-    tcase_add_test(tc, test_parse_header);
     tcase_add_test(tc, test_parse_packet);
     tcase_add_test(tc, test_parse_packet2);
     suite_add_tcase(s, tc);

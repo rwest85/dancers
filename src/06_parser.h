@@ -114,7 +114,7 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
   return rc;
 }
 
-int parse_header_internal(dancers_parse *parse)
+int parse_header(dancers_parse *parse)
 {
   const uint8_t *data = parse->header.data;
   size_t *offset = &(parse->header.offset);
@@ -145,40 +145,13 @@ int parse_header_internal(dancers_parse *parse)
   return DE_SUCCESS;
 }
 
-int parse_header(const uint8_t *data, size_t *offset, dancers_packet *packet) {
-  packet->qid = read_uint16(data, offset);
-
-  uint16_t flags = read_uint16(data, offset);
-
-  packet->qr = !!(flags & 0x8000);
-  packet->opcode = (flags & 0x7800) >> 11;
-  packet->aa = !!(flags & (1 << 10));
-  packet->tc = !!(flags & (1 << 9));
-  packet->rd = !!(flags & (1 << 8));
-  packet->ra = !!(flags & (1 << 7));
-  packet->zz = !!(flags & (1 << 6));
-  packet->ad = !!(flags & (1 << 5));
-  packet->cd = !!(flags & (1 << 4));
-
-  packet->rcode = (flags & 0x000F);
-
-  packet->qd_count = read_uint16(data, offset);
-  packet->an_count = read_uint16(data, offset);
-  packet->ns_count = read_uint16(data, offset);
-  packet->ar_count = read_uint16(data, offset);
-
-  return DE_SUCCESS;
-}
-
 static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   dancers_packet *packet = &(parse->header.packet);
-  size_t *offset = &(parse->header.offset);
-  const uint8_t *data = parse->header.data;
   size_t length = parse->header.length;
 
   /* parse header */
   TRACE_START();
-  int rc = parse_header(data, offset, packet);
+  int rc = parse_header(parse);
 
   const size_t min_size =
       packet->qd_count * MIN_QUESTION_SZ +
