@@ -32,7 +32,7 @@ static char *read_str(dancers_parse *parse) {
   char *str = NULL;
 
   if (*offset < length) {
-    size_t l = read_uint8(data, offset);
+    size_t l = read_uint8(parse);
 
     if (*offset + l < length) {
       str = calloc(l + 1, 1);

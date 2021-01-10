@@ -7,10 +7,12 @@ const size_t IN_ADDR_SZ = sizeof(struct in_addr);
 const size_t SOCKADDR_IN6_SZ = sizeof(struct sockaddr_in6);
 const size_t IN6_ADDR_SZ = sizeof(struct in6_addr);
 
-static inline uint8_t read_uint8(const uint8_t *data, size_t *offset) {
+static inline uint8_t read_uint8(struct dancers_parse *parse) {
   /* ASSUMES: bytes between *offset and *offset+1 are in-bounds */
-  uint16_t rtn = data[*offset];
-  *offset = *offset + sizeof(uint8_t);
+
+  uint8_t rtn = parse->header.data[parse->header.offset];
+  parse->2header.offset += sizeof(uint8_t);
+
   return rtn;
 }
 

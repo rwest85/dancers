@@ -116,9 +116,9 @@ static int parse_caa(dancers_parse *parse, size_t rdlen, void *record) {
 
   TRACE("parsing CAA record with rdlen %zu", rdlen);
 
-  caa->flags = read_uint8(data, offset);
+  caa->flags = read_uint8(parse);
 
-  size_t taglen = read_uint8(data, offset);
+  size_t taglen = read_uint8(parse);
   size_t valuelen = rdlen - taglen - 2;
 
   caa->tag = calloc(taglen + 1, 1);
