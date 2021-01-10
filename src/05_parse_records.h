@@ -86,8 +86,6 @@ static int parse_naptr(dancers_parse *parse, size_t rdlen, void *record) {
 
   TRACE("parsing NAPTR record with rdlen %zu", rdlen);
 
-  size_t end_offset = *offset + rdlen;
-
   naptr->order = read_uint16(data, offset);
   naptr->preference = read_uint16(data, offset);
 
@@ -303,22 +301,17 @@ static int parse_ns(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_a(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
   dancers_rr_a *a = record;
 
-  a->addr = read_sockaddr_in(data, offset);
+  a->addr = read_sockaddr_in(parse);
 
   return DE_SUCCESS;
 }
 
 static int parse_aaaa(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-
   dancers_rr_aaaa *aaaa = record;
 
-  aaaa->addr6 = read_sockaddr_in6(data, offset);
+  aaaa->addr6 = read_sockaddr_in6(parse);
 
   return DE_SUCCESS;
 }

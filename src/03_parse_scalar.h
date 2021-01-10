@@ -33,28 +33,26 @@ static inline uint32_t read_uint32(const uint8_t *data, size_t *offset) {
   return (hi << 16) | lo;
 }
 
-static inline struct sockaddr_in read_sockaddr_in(const uint8_t *data,
-                                                  size_t *offset) {
+static inline struct sockaddr_in read_sockaddr_in(struct dancers_parse *parse) {
   struct sockaddr_in addr = {
       .sin_len = SOCKADDR_IN_SZ,
       .sin_family = AF_INET,
   };
 
-  memcpy(&addr.sin_addr, &data[*offset], IN_ADDR_SZ);
-  (*offset) += IN_ADDR_SZ;
+  memcpy(&addr.sin_addr, &parse->header.data[parse->header.offset], IN_ADDR_SZ);
+  parse->header.offset += IN_ADDR_SZ;
 
   return addr;
 }
 
-static inline struct sockaddr_in6 read_sockaddr_in6(const uint8_t *data,
-                                                    size_t *offset) {
+static inline struct sockaddr_in6 read_sockaddr_in6(struct dancers_parse *parse) {
   struct sockaddr_in6 addr6 = {
       .sin6_len = SOCKADDR_IN6_SZ,
       .sin6_family = AF_INET6,
   };
 
-  memcpy(&addr6.sin6_addr, &data[*offset], IN6_ADDR_SZ);
-  (*offset) += IN6_ADDR_SZ;
+  memcpy(&addr6.sin6_addr,  &parse->header.data[parse->header.offset], IN6_ADDR_SZ);
+  parse->header.offset += IN6_ADDR_SZ;
 
   return addr6;
 }
