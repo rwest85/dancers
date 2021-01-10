@@ -48,8 +48,10 @@ const char *type_to_string(uint16_t type);
 
 static int dancers_print_rr(FILE *f, const void *_record);
 
-typedef int (*parse_fn)(const uint8_t *data, size_t *offset, size_t length,
-                        size_t rdlen, void *record);
+typedef struct dancers_parse dancers_parse;
+
+typedef int (*parse_fn)(struct dancers_parse *parse, size_t rdlen,
+                        void *record);
 typedef int (*print_fn)(FILE *f, const void *record);
 typedef void *(*free_fn)(void *record);
 
@@ -85,10 +87,10 @@ typedef struct dancers_parse {
   };
 } dancers_parse;
 
-static inline void *dalloc(struct dancers_parse *parse, size_t count, size_t size)
-{
-  return parse->header.alloc ?
-    parse->header.alloc(count, size) : calloc(count, size);
+static inline void *dalloc(struct dancers_parse *parse, size_t count,
+                           size_t size) {
+  return parse->header.alloc ? parse->header.alloc(count, size)
+                             : calloc(count, size);
 }
 
 /** tracing and debug */

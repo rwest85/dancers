@@ -253,29 +253,6 @@ START_TEST(test_parse_packet_crash1) {
 }
 END_TEST
 
-START_TEST(test_parse_txt_data) {
-  int rc = 0;
-
-  dancers_rr_txt txt = {0};
-  txt.type = t_txt;
-
-  size_t offset = 0x28;
-  size_t length = 0x3c;
-
-  rc = parse_txt(fixtures_google_com_txt_response, &offset,
-                 fixtures_google_com_txt_response_len, length, &txt);
-  dancers_txt_contents *contents = txt.contents;
-
-  ck_assert_int_eq(rc, DE_SUCCESS);
-  ck_assert_uint_eq(contents->length, 0x3b);
-  ck_assert_int_eq(contents->part_count, 1);
-  ck_assert_str_eq(
-      contents->data,
-      "facebook-domain-verification=22rm551cu4k0ab0bxsw536tlds4h95");
-  cleanup_record(&txt);
-}
-END_TEST
-
 START_TEST(test_parse_txt_packet) {
   dancers_packet *packet = NULL;
 
@@ -456,7 +433,6 @@ Suite *parser_suite(void) {
   {
     TCase *tc = tcase_create("txt");
     tcase_set_tags(tc, "parser rr txt");
-    tcase_add_test(tc, test_parse_txt_data);
     tcase_add_test(tc, test_parse_txt_packet);
     suite_add_tcase(s, tc);
   }

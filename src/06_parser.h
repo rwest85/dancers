@@ -76,7 +76,7 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
     TRACE("Parsing RR with name '%s' and type %04x %s", name, type,
           type_to_string(type));
     if (rt->min_rdlen <= rdlen && rdlen <= rt->max_rdlen)
-      rc = rt->parse_fn(data, offset, length, rdlen, record);
+      rc = rt->parse_fn(parse, rdlen, record);
     else {
       DEBUG(
           "rdlen %zu is outside of bounds MIN %zu - %zu MAX for rr type %04x "
@@ -87,7 +87,7 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
   } else {
     TRACE("Parsing generic RR with name '%s' type %04x %s rdlen %zu", name,
           type, type_to_string(type), rdlen);
-    rc = parse_generic(data, offset, length, rdlen, record);
+    rc = parse_generic(parse, rdlen, record);
   }
 
   /* should consume entire *RDATA* portion */
@@ -112,8 +112,7 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
   return rc;
 }
 
-int parse_header(dancers_parse *parse)
-{
+int parse_header(dancers_parse *parse) {
   const uint8_t *data = parse->header.data;
   size_t *offset = &(parse->header.offset);
   dancers_packet *packet = &(parse->header.packet);
@@ -146,6 +145,7 @@ int parse_header(dancers_parse *parse)
 static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   dancers_packet *packet = &(parse->header.packet);
   size_t length = parse->header.length;
+  size_t *offset = &(parse->header.offset);
 
   /* parse header */
   TRACE_START();
