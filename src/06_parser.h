@@ -26,6 +26,87 @@ static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
   return DE_SUCCESS;
 }
 
+static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
+  TRACE_START();
+  int rc = DE_SUCCESS;
+
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  size_t length = parse->header.length;
+
+  char *name = parse_name(data, offset, length);
+  if (name == NULL) {
+    return DE_PACKET_PARSE;
+  }
+
+  if ((*offset + MIN_RR_SZ) > length) {
+    DEBUG("Expected minimum of %zu bytes, found only %zu for rr", MIN_RR_SZ,
+          (length - *offset));
+    return DE_PACKET_PARSE;
+  }
+
+  record->name = name;
+  record->type = read_uint16(data, offset);
+
+  record->cls = read_uint16(data, offset);
+  record->ttl = read_uint32(data, offset);
+
+  size_t rdlen = read_uint16(data, offset);
+  size_t expected_offset = *offset + rdlen;
+
+  if (expected_offset > length) {
+    DEBUG(
+        "Expected end offset 0x%04zx is greater than packet length 0x%04zx, "
+        "failing parse of rr type %04x",
+        expected_offset, length, record->type);
+    return DE_PACKET_PARSE;
+  }
+
+  dancers_rr_type type = record->type;
+
+  /* find parse function */
+  recordtype *rt = lookup_rt(type);
+
+  if (rt && rt->parse_fn != NULL) {
+    TRACE("Parsing RR with name '%s' and type %04x %s", name, type,
+          type_to_string(type));
+    if (rt->min_rdlen <= rdlen && rdlen <= rt->max_rdlen)
+      rc = rt->parse_fn(data, offset, length, rdlen, record);
+    else {
+      DEBUG(
+          "rdlen %zu is outside of bounds MIN %zu - %zu MAX for rr type %04x "
+          "%s",
+          rdlen, rt->min_rdlen, rt->max_rdlen, type, type_to_string(type));
+      return DE_PACKET_PARSE;
+    }
+  } else {
+    TRACE("Parsing generic RR with name '%s' type %04x %s rdlen %zu", name,
+          type, type_to_string(type), rdlen);
+    rc = parse_generic(data, offset, length, rdlen, record);
+  }
+
+  /* should consume entire *RDATA* portion */
+  if (*offset < expected_offset) {
+    DEBUG(
+        "Packet parse warning: additional data (%zu bytes) while parsing rr "
+        "type %04x expected end 0x%04zx actual end 0x%04zx",
+        (expected_offset - *offset), record->type, expected_offset, length);
+
+    *offset = expected_offset;
+  } else if (*offset > expected_offset) {
+    DEBUG(
+        "Packet parse error: parsing rr type %04x expected end 0x%04zx actual "
+        "end 0x%04zx",
+        record->type, expected_offset, length);
+
+    rc = DE_PACKET_PARSE;
+  }
+
+  TRACE("Completed parse rc=%d '%s' %04x %s", rc, name, type,
+        type_to_string(type));
+  return rc;
+}
+
 static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
                     dancers_rr *record) {
   TRACE_START();

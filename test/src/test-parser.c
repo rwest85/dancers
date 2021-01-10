@@ -17,8 +17,16 @@ dancers_packet *cleanup_packet(dancers_packet *packet) {
 
 static int test_parse_rr(const uint8_t *data, size_t *offset, size_t length,
 			 dancers_rr *record) {
-  /* TODO: set up parse context for testing */
-  return parse_rr(data, offset, length, record);
+  char ac[65536] = {0};
+  dancers_parse *parse = (dancers_parse *)ac;
+  parse->header.data = data;
+  parse->header.length = length;
+  parse->header.offset = *offset;
+  parse->header.end = (void *)parse + 65536;
+
+  int rc = parse_rr_internal(parse, record);
+
+  return rc;
 }
 
 void cleanup_record(void *record) {
