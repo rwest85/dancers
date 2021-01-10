@@ -27,12 +27,12 @@ static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
 }
 
 static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
-  TRACE_START();
   int rc = DE_SUCCESS;
 
   const uint8_t *data = parse->header.data;
   size_t *offset = &(parse->header.offset);
   size_t length = parse->header.length;
+  TRACE_START();
 
   char *name = parse_name(data, offset, length);
   if (name == NULL) {
@@ -104,107 +104,6 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
 
   TRACE("Completed parse rc=%d '%s' %04x %s", rc, name, type,
         type_to_string(type));
-  return rc;
-}
-
-static int parse_rr(const uint8_t *data, size_t *offset, size_t length,
-                    dancers_rr *record) {
-  TRACE_START();
-  int rc = DE_SUCCESS;
-
-  char *name = parse_name(data, offset, length);
-  if (name == NULL) {
-    return DE_PACKET_PARSE;
-  }
-  if ((*offset + MIN_RR_SZ) > length) {
-    DEBUG("Expected minimum of %zu bytes, found only %zu for rr", MIN_RR_SZ,
-          (length - *offset));
-    return DE_PACKET_PARSE;
-  }
-
-  record->name = name;
-  record->type = read_uint16(data, offset);
-
-  record->cls = read_uint16(data, offset);
-  record->ttl = read_uint32(data, offset);
-
-  size_t rdlen = read_uint16(data, offset);
-  size_t expected_offset = *offset + rdlen;
-
-  if (expected_offset > length) {
-    DEBUG(
-        "Expected end offset 0x%04zx is greater than packet length 0x%04zx, "
-        "failing parse of rr type %04x",
-        expected_offset, length, record->type);
-    return DE_PACKET_PARSE;
-  }
-
-  dancers_rr_type type = record->type;
-
-  /* find parse function */
-  recordtype *rt = lookup_rt(type);
-
-  if (rt && rt->parse_fn != NULL) {
-    TRACE("Parsing RR with name '%s' and type %04x %s", name, type,
-          type_to_string(type));
-    if (rt->min_rdlen <= rdlen && rdlen <= rt->max_rdlen)
-      rc = rt->parse_fn(data, offset, length, rdlen, record);
-    else {
-      DEBUG(
-          "rdlen %zu is outside of bounds MIN %zu - %zu MAX for rr type %04x "
-          "%s",
-          rdlen, rt->min_rdlen, rt->max_rdlen, type, type_to_string(type));
-      return DE_PACKET_PARSE;
-    }
-  } else {
-    TRACE("Parsing generic RR with name '%s' type %04x %s rdlen %zu", name,
-          type, type_to_string(type), rdlen);
-    rc = parse_generic(data, offset, length, rdlen, record);
-  }
-
-  /* should consume entire *RDATA* portion */
-  if (*offset < expected_offset) {
-    DEBUG(
-        "Packet parse warning: additional data (%zu bytes) while parsing rr "
-        "type %04x expected end 0x%04zx actual end 0x%04zx",
-        (expected_offset - *offset), record->type, expected_offset, length);
-
-    *offset = expected_offset;
-  } else if (*offset > expected_offset) {
-    DEBUG(
-        "Packet parse error: parsing rr type %04x expected end 0x%04zx actual "
-        "end 0x%04zx",
-        record->type, expected_offset, length);
-
-    rc = DE_PACKET_PARSE;
-  }
-
-  TRACE("Completed parse rc=%d '%s' %04x %s", rc, name, type,
-        type_to_string(type));
-  return rc;
-}
-
-static int parse_rrset(dancers_parse *parse,
-                       size_t count, dancers_rr *records) {
-  int rc = DE_SUCCESS;
-
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-  size_t length = parse->header.length;
-
-  if (count > 0) {
-    for (size_t i = 0; i < count; i++) {
-      dancers_rr *base = &(records[i]);
-
-      rc = parse_rr_internal(parse, base);
-
-      if (rc != DE_SUCCESS) {
-        records_free(records, count);
-        records = NULL;
-        break;
-      }
-    }
-  }
   return rc;
 }
 
@@ -258,11 +157,13 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
     return DE_PACKET_PARSE;
   }
 
+  size_t rr_count = packet->an_count + packet->ns_count + packet->ar_count;
+
   packet->questions = parse->header.rest;
-  packet->answers = &(packet->questions[packet->qd_count + 1]);
-  packet->nameservers = &(packet->answers[packet->an_count + 1]);
-  packet->additional = &(packet->nameservers[packet->ns_count + 1]);
-  parse->header.rest = &(packet->additional[packet->ar_count + 1]);
+  packet->answers = &(packet->questions[packet->qd_count]);
+  packet->nameservers = &(packet->answers[packet->an_count]);
+  packet->additional = &(packet->nameservers[packet->ns_count]);
+  parse->header.rest = &(packet->additional[packet->ar_count]);
 
   size_t allocated = parse->header.end - (void *)parse;
   size_t required = (void *)parse->header.rest - (void *)parse;
@@ -282,20 +183,15 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   }
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing answers (%zu)", packet->an_count);
-    rc = parse_rrset(parse, packet->an_count, packet->answers);
-  }
+    for (size_t i = 0; i < rr_count; i++) {
+      dancers_rr *base = &(packet->answers[i]);
 
-  if (rc == DE_SUCCESS) {
-    TRACE("parsing nameserver records (%zu)", packet->ns_count);
-    rc = parse_rrset(parse, packet->ns_count,
-                     packet->nameservers);
-  }
+      rc = parse_rr_internal(parse, base);
 
-  if (rc == DE_SUCCESS) {
-    TRACE("parsing additional records (%zu)", packet->ar_count);
-    rc =
-        parse_rrset(parse, packet->ar_count, packet->additional);
+      if (rc != DE_SUCCESS) {
+        break;
+      }
+    }
   }
 
   return rc;
