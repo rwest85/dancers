@@ -75,6 +75,7 @@ typedef struct dancers_parse_header {
   size_t length;
   dancers_rr *rest;
   void *end;
+  void *(*alloc)(size_t, size_t);
 } dancers_parse_header;
 
 typedef struct dancers_parse {

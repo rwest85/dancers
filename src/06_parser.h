@@ -148,6 +148,11 @@ int parse_header(const uint8_t *data, size_t *offset, dancers_packet *packet) {
   return DE_SUCCESS;
 }
 
+static dancers_error dancers_packet_parse_internal(dancers_parse * parse)
+{
+  return 0;
+}
+
 dancers_error dancers_packet_parse(const uint8_t *data, size_t length,
                                    dancers_packet **_packet) {
   /* minimum packet size */
