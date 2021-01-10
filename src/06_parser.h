@@ -34,7 +34,7 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
   size_t length = parse->header.length;
   TRACE_START();
 
-  char *name = parse_name(data, offset, length);
+  char *name = parse_name_internal(parse);
   if (name == NULL) {
     return DE_PACKET_PARSE;
   }

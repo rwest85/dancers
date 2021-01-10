@@ -29,6 +29,22 @@ static int test_parse_rr(const uint8_t *data, size_t *offset, size_t length,
   return rc;
 }
 
+static char *test_parse_name(const uint8_t *data, size_t *offset, size_t length)
+{
+  char ac[65536] = {0};
+  dancers_parse *parse = (dancers_parse *)ac;
+  parse->header.data = data;
+  parse->header.length = length;
+  parse->header.offset = *offset;
+  parse->header.end = (void *)parse + 65536;
+
+  char *name = parse_name_internal(parse);
+
+  *offset = parse->header.offset;
+
+  return name;
+}
+
 void cleanup_record(void *record) {
   if (write_parser_output) {
     dancers_print_rr(stderr, record);
@@ -85,7 +101,7 @@ END_TEST
 START_TEST(test_parse_name1) {
   size_t offset = 0x36;
 
-  char *name = parse_name(__fixtures_packets_packet1_bin, &offset,
+  char *name = test_parse_name(__fixtures_packets_packet1_bin, &offset,
                           __fixtures_packets_packet1_bin_len);
 
   ck_assert_str_eq((char *)name, "delegation-test.ventx.de");
@@ -98,7 +114,7 @@ END_TEST
 START_TEST(test_parse_name2) {
   size_t offset = 0x60;
 
-  char *name = parse_name(__fixtures_packets_packet1_bin, &offset,
+  char *name = test_parse_name(__fixtures_packets_packet1_bin, &offset,
                           __fixtures_packets_packet1_bin_len);
 
   ck_assert_str_eq((char *)name, "ns-1527.awsdns-62.org");
@@ -159,7 +175,7 @@ START_TEST(test_parse_uint32_alignment) {
 START_TEST(test_parse_name_compressed1) {
   size_t offset = 0x0C;
 
-  char *name = parse_name(bind_systemtest_000a60e489e7_pkt, &offset,
+  char *name = test_parse_name(bind_systemtest_000a60e489e7_pkt, &offset,
                           bind_systemtest_000a60e489e7_pkt_len);
 
   ck_assert_str_eq((char *)name, "zone000004.example");
@@ -172,7 +188,7 @@ END_TEST
 START_TEST(test_parse_name_compressed2) {
   size_t offset = 0x30;
 
-  char *name = parse_name(bind_systemtest_000a60e489e7_pkt, &offset,
+  char *name = test_parse_name(bind_systemtest_000a60e489e7_pkt, &offset,
                           bind_systemtest_000a60e489e7_pkt_len);
 
   ck_assert_str_eq((char *)name, "ns1.zone000004.example");
