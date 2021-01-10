@@ -33,7 +33,6 @@ static int parse_questions(dancers_parse *parse) {
 static int parse_rr(dancers_parse *parse, dancers_rr *record) {
   int rc = DE_SUCCESS;
 
-  const uint8_t *data = parse->header.data;
   size_t *offset = &(parse->header.offset);
   size_t length = parse->header.length;
   TRACE_START();
@@ -112,8 +111,6 @@ static int parse_rr(dancers_parse *parse, dancers_rr *record) {
 }
 
 int parse_header(dancers_parse *parse) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
   dancers_packet *packet = &(parse->header.packet);
   TRACE_START();
 
@@ -144,7 +141,6 @@ int parse_header(dancers_parse *parse) {
 static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   dancers_packet *packet = &(parse->header.packet);
   size_t length = parse->header.length;
-  size_t *offset = &(parse->header.offset);
 
   /* parse header */
   TRACE_START();

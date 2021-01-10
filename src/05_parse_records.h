@@ -77,8 +77,6 @@ static int parse_txt(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_naptr(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
   TRACE_START();
   dancers_rr_naptr *naptr = record;
 
@@ -205,7 +203,6 @@ static int parse_opt(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_soa(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
   size_t *offset = &(parse->header.offset);
   size_t length = parse->header.length;
   TRACE_START();
@@ -228,9 +225,6 @@ static int parse_soa(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_srv(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-
   dancers_rr_srv *srv = record;
   int rc = DE_PACKET_PARSE;
 
@@ -246,9 +240,6 @@ static int parse_srv(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_mx(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-  size_t length = parse->header.length;
   dancers_rr_mx *mx = record;
   int rc = DE_PACKET_PARSE;
 
@@ -261,10 +252,6 @@ static int parse_mx(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_ptr(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-  size_t length = parse->header.length;
-
   dancers_rr_ptr *ptr = record;
   int rc = DE_PACKET_PARSE;
 
@@ -275,9 +262,6 @@ static int parse_ptr(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_cname(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-  size_t length = parse->header.length;
   dancers_rr_cname *cname = record;
   int rc = DE_PACKET_PARSE;
 
@@ -288,9 +272,6 @@ static int parse_cname(dancers_parse *parse, size_t rdlen, void *record) {
 }
 
 static int parse_ns(dancers_parse *parse, size_t rdlen, void *record) {
-  const uint8_t *data = parse->header.data;
-  size_t *offset = &(parse->header.offset);
-  size_t length = parse->header.length;
   dancers_rr_ns *ns = record;
   int rc = DE_PACKET_PARSE;
 

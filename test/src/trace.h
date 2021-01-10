@@ -3,8 +3,8 @@
 #ifdef TRACE_ON
 #include <arpa/inet.h>
 
-#define TRACE_START(...)                                            \
-  size_t __trace_start_offset = *offset;                            \
+#define TRACE_START(...)					    \
+  size_t __trace_start_offset = parse->header.offset;		    \
   fprintf(stderr, "T entering %s start_offset=0x%04zx\n", __func__, \
           __trace_start_offset);
 
