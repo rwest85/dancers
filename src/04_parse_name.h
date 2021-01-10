@@ -23,7 +23,11 @@ static size_t get_compression_offset(uint16_t l) {
 }
 
 /* TODO: make inlineable and use in parse_txt */
-static char *read_str(const uint8_t *data, size_t *offset, size_t length) {
+static char *read_str(dancers_parse *parse) {
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  size_t length = parse->header.length;
+
   TRACE_START();
   char *str = NULL;
 

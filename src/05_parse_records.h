@@ -91,11 +91,11 @@ static int parse_naptr(dancers_parse *parse, size_t rdlen, void *record) {
   naptr->order = read_uint16(data, offset);
   naptr->preference = read_uint16(data, offset);
 
-  naptr->flags = read_str(data, offset, end_offset);
-  if (naptr->flags != NULL) naptr->service = read_str(data, offset, end_offset);
+  naptr->flags = read_str(parse);
+  if (naptr->flags != NULL) naptr->service = read_str(parse);
 
   if (naptr->service != NULL)
-    naptr->regexp = read_str(data, offset, end_offset);
+    naptr->regexp = read_str(parse);
 
   if (naptr->regexp != NULL)
     naptr->replacement = parse_name_nocompression(data, offset, end_offset);
