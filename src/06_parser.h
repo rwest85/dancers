@@ -1,7 +1,14 @@
 #pragma once
 
-static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
-                           dancers_packet *packet) {
+static int parse_questions(dancers_parse *parse) {
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  size_t length = parse->header.length;
+  dancers_packet *packet = &(parse->header.packet);
+  TRACE_START();
+
+  TRACE("parsing questions (%zu)", packet->qd_count);
+
   size_t count = packet->qd_count;
   size_t minimum_size = count * MIN_QUESTION_SZ;
 
@@ -9,7 +16,7 @@ static int parse_questions(const uint8_t *data, size_t *offset, size_t length,
 
   if (count > 0) {
     for (size_t i = 0; i < count; i++) {
-      char *name = parse_name(data, offset, length);
+      char *name = parse_name_internal(parse);
       if (name == NULL || (*offset + QUESTION_POSTNAME_SZ) >= length) {
         questions_free(packet->questions, count);
         return DE_PACKET_PARSE;
@@ -178,8 +185,7 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   }
 
   if (rc == DE_SUCCESS) {
-    TRACE("parsing questions (%zu)", packet->qd_count);
-    rc = parse_questions(data, offset, length, packet);
+    rc = parse_questions(parse);
   }
 
   if (rc == DE_SUCCESS) {
