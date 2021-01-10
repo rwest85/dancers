@@ -114,6 +114,37 @@ static int parse_rr_internal(dancers_parse *parse, dancers_rr *record) {
   return rc;
 }
 
+int parse_header_internal(dancers_parse *parse)
+{
+  const uint8_t *data = parse->header.data;
+  size_t *offset = &(parse->header.offset);
+  dancers_packet *packet = &(parse->header.packet);
+  TRACE_START();
+
+  packet->qid = read_uint16(data, offset);
+
+  uint16_t flags = read_uint16(data, offset);
+
+  packet->qr = !!(flags & 0x8000);
+  packet->opcode = (flags & 0x7800) >> 11;
+  packet->aa = !!(flags & (1 << 10));
+  packet->tc = !!(flags & (1 << 9));
+  packet->rd = !!(flags & (1 << 8));
+  packet->ra = !!(flags & (1 << 7));
+  packet->zz = !!(flags & (1 << 6));
+  packet->ad = !!(flags & (1 << 5));
+  packet->cd = !!(flags & (1 << 4));
+
+  packet->rcode = (flags & 0x000F);
+
+  packet->qd_count = read_uint16(data, offset);
+  packet->an_count = read_uint16(data, offset);
+  packet->ns_count = read_uint16(data, offset);
+  packet->ar_count = read_uint16(data, offset);
+
+  return DE_SUCCESS;
+}
+
 int parse_header(const uint8_t *data, size_t *offset, dancers_packet *packet) {
   packet->qid = read_uint16(data, offset);
 
