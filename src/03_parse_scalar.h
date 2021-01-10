@@ -17,10 +17,9 @@ static inline uint8_t read_uint8(struct dancers_parse *parse) {
 }
 
 static inline uint16_t read_uint16(struct dancers_parse *parse) {
-
   /* ASSUMES: bytes between *offset and *offset+2 are in-bounds */
   uint16_t rtn = (parse->header.data[parse->header.offset] << 8) +
-    parse->header.data[parse->header.offset + 1];
+                 parse->header.data[parse->header.offset + 1];
 
   parse->header.offset += sizeof(uint16_t);
 
@@ -51,13 +50,15 @@ static inline struct sockaddr_in read_sockaddr_in(struct dancers_parse *parse) {
   return addr;
 }
 
-static inline struct sockaddr_in6 read_sockaddr_in6(struct dancers_parse *parse) {
+static inline struct sockaddr_in6 read_sockaddr_in6(
+    struct dancers_parse *parse) {
   struct sockaddr_in6 addr6 = {
       .sin6_len = SOCKADDR_IN6_SZ,
       .sin6_family = AF_INET6,
   };
 
-  memcpy(&addr6.sin6_addr,  &parse->header.data[parse->header.offset], IN6_ADDR_SZ);
+  memcpy(&addr6.sin6_addr, &parse->header.data[parse->header.offset],
+         IN6_ADDR_SZ);
   parse->header.offset += IN6_ADDR_SZ;
 
   return addr6;

@@ -200,21 +200,17 @@ static dancers_error dancers_packet_parse_internal(dancers_parse *parse) {
   return rc;
 }
 
-static size_t bytes_to_recordcount(size_t bytes)
-{
+static size_t bytes_to_recordcount(size_t bytes) {
   return ((bytes) + sizeof(dancers_rr) - 1) / sizeof(dancers_rr);
 }
 
-void *alloc(dancers_parse *parse, size_t count, size_t size)
-{
-  if ((count > 65536) || (size > 65536))
-    return NULL;
+void *alloc(dancers_parse *parse, size_t count, size_t size) {
+  if ((count > 65536) || (size > 65536)) return NULL;
 
   size_t needed = (count * size);
   size_t available = (parse->header.end - (void *)parse->header.rest);
 
-  if (available < needed)
-    return NULL;
+  if (available < needed) return NULL;
 
   size_t o = bytes_to_recordcount(needed);
   void *rc = (void *)parse->header.rest;
