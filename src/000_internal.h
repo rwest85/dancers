@@ -85,6 +85,12 @@ typedef struct dancers_parse {
   };
 } dancers_parse;
 
+static inline void *dalloc(struct dancers_parse *parse, size_t count, size_t size)
+{
+  return parse->header.alloc ?
+    parse->header.alloc(count, size) : calloc(count, size);
+}
+
 /** tracing and debug */
 #ifndef TRACE_ON
 #define TRACE_START(...)

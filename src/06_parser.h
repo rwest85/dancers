@@ -14,19 +14,17 @@ static int parse_questions(dancers_parse *parse) {
 
   if (*offset + minimum_size >= length) return DE_PACKET_PARSE;
 
-  if (count > 0) {
-    for (size_t i = 0; i < count; i++) {
-      char *name = parse_name_internal(parse);
-      if (name == NULL || (*offset + QUESTION_POSTNAME_SZ) >= length) {
-        questions_free(packet->questions, count);
-        return DE_PACKET_PARSE;
-      } else {
-        dancers_q *question = &(packet->questions[i].q);
-        question->name = name;
+  for (size_t i = 0; i < count; i++) {
+    char *name = parse_name_internal(parse);
+    if (name == NULL || (*offset + QUESTION_POSTNAME_SZ) >= length) {
+      questions_free(packet->questions, count);
+      return DE_PACKET_PARSE;
+    } else {
+      dancers_q *question = &(packet->questions[i].q);
+      question->name = name;
 
-        question->type = read_uint16(data, offset);
-        question->cls = read_uint16(data, offset);
-      }
+      question->type = read_uint16(data, offset);
+      question->cls = read_uint16(data, offset);
     }
   }
 
